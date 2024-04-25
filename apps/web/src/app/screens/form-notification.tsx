@@ -1,39 +1,30 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import { Select, TextArea } from '../components/form';
+import { LogsTable, NotificationLog } from '../components/logs/LogsTable';
+import { FormData, NotificationForm } from '../components/notifications/NotificationForm';
 import {
-  Alert,
-  Button,
   Container,
   Flex,
   FlexItem,
   Footer,
   Heading,
-  HeroSection,
   SubHeading,
   Wrapper
 } from '../components/ui';
-import { CATEGORIES } from '../constants';
-import { formatDate } from '../utils';
+import { API_URL } from '../constants';
 
-interface NotificationLog {
-  userId: number;
-  channel: string;
-  category: string;
-  content: string;
-  timestamp: string;
-}
+type AlertProps = {
+  type: 'error' | 'success';
+  message: string;
+};
 
 const FormNotification = () => {
-  const [category, setCategory] = useState<string>('');
-  const [message, setMessage] = useState<string>('');
-  const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [logs, setLogs] = useState<NotificationLog[]>([]);
+  const [alert, setAlert] = useState<AlertProps | null>(null);
 
   const getLogs = async () => {
-    const request = await fetch('http://localhost:3000/logs');
+    const request = await fetch(`${API_URL}/logs`);
     const response = await request.json();
     setLogs(response);
   }
@@ -42,26 +33,15 @@ const FormNotification = () => {
     getLogs();
   }, []);
 
-  const handleOnChange = (
-    setStateFunction: React.Dispatch<React.SetStateAction<string>>
-  ) => (e: ChangeEvent<HTMLSelectElement | HTMLTextAreaElement>) => {
-    setStateFunction(e.target.value);
-    setError(null);
-  };
-
-  const onSubmit = async () => {
-    if (!category || !message?.trim()) {
-      setError('All fields above are required');
+  const onSubmit = async (data: FormData) => {
+    if (!data?.category || !data?.message?.trim()) {
+      setAlert({ type: 'error', message: 'All fields above are required' });
       return;
     }
 
     try {
       setIsLoading(true);
-      const data = {
-        message,
-        category
-      };
-      const request = await fetch('http://localhost:3000/notification', {
+      const request = await fetch(`${API_URL}/notification`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -71,11 +51,11 @@ const FormNotification = () => {
       const response = await request.text();
 
       setIsLoading(false);
-      setSuccessMessage(response);
+      setAlert({ type: 'success', message: response });
 
       getLogs();
     } catch (error) {
-      setError(error as string);
+      setAlert({ type: 'error', message: error as string });
     }
 
   };
@@ -83,79 +63,21 @@ const FormNotification = () => {
   return (
     <Wrapper>
       <Container>
-        <div>
-          <SubHeading>Hi, let's send</SubHeading>
-          <Heading>Your first notification</Heading>
-        </div>
+        <SubHeading>Hi, let's send</SubHeading>
+        <Heading>Your first notification</Heading>
 
         <Flex>
           <FlexItem flex={1}>
-            <HeroSection className="white">
-              <div className="white">
-                <SubHeading>Submission form</SubHeading>
-
-                <Select
-                  options={CATEGORIES}
-                  onChange={handleOnChange(setCategory)}
-                  value={category}
-                  placeholder="Select a category"
-                />
-
-                <TextArea
-                  placeholder="Message"
-                  onChange={handleOnChange(setMessage)}
-                  value={message}
-                />
-
-                {error && <Alert type="error">{error}</Alert>}
-                {successMessage && <Alert type="success">{successMessage}</Alert>}
-
-                <Button onClick={onSubmit}>
-                  {isLoading ? 'Sending...' : 'Send'}
-                </Button>
-              </div>
-            </HeroSection>
+            <NotificationForm
+              onSubmit={onSubmit}
+              loading={isLoading}
+              alertType={alert?.type}
+              alertMessage={alert?.message}
+            />
           </FlexItem>
 
           <FlexItem flex={1}>
-            <SubHeading>Logs</SubHeading>
-            <table>
-              <thead>
-                <tr>
-                  <th>Subscriber ID</th>
-                  <th>Category</th>
-                  <th>Type</th>
-                  <th>Message</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.length === 0 ? (
-                  <tr>
-                    <td className="center" colSpan={5}>No logs</td>
-                  </tr>
-                ) : null}
-                {logs.map((log: NotificationLog, index: number) => (
-                  <tr key={index}>
-                    <td className="center">
-                      {log.userId}
-                    </td>
-                    <td className="center">
-                      {log.category}
-                    </td>
-                    <td className="center">
-                      {log.channel}
-                    </td>
-                    <td>
-                      {log.content}
-                    </td>
-                    <td className="center" style={{ width: 100 }}>
-                      {formatDate(log.timestamp)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <LogsTable logs={logs} />
           </FlexItem>
         </Flex>
 

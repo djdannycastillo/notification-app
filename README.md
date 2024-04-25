@@ -23,5 +23,5 @@ Run `npx nx build service`  or `npx nx build web` to build the application. The 
 
 Daniel Castillo
 
-- [linkedIn](https://www.linkedin.com/in/daniel-castillo7)
+- [LinkedIn](https://www.linkedin.com/in/daniel-castillo7)
 - [Dribble](https://www.dribbble.com/prowebdesarrollo)
