@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+
 import { NotificationLogger } from '../../services/notification/notificationLogger';
 
 const notificationLogger = new NotificationLogger();
