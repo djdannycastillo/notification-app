@@ -12,8 +12,8 @@ comes with a LSP for Vim users.
 
 ## Start the application
 
-Run `npx nx serve service` to start the development server for Service/API project.
-Run `npx nx serve web` to start the development server for Web project.
+- Run `npx nx serve service` to start the development server for Service/API project.
+- Run `npx nx serve web` to start the development server for Web project.
 
 ## Build for production
 
